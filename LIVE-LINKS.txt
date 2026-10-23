@@ -1,0 +1,29 @@
+CREZYCALL — TEMP LIVE FOR FRIEND TEST
+(Keep your Mac ON + internet ON. Do not close terminal / sleep Mac.)
+
+Base: https://dir-trader-reduction-tide.trycloudflare.com
+
+========================================
+YOU (Customer / Caller):
+  https://dir-trader-reduction-tide.trycloudflare.com/customer
+  Login: user@demo.com / user123
+
+FRIEND (Host / Receiver) — different city OK:
+  https://dir-trader-reduction-tide.trycloudflare.com/agent
+  Login: host@crezycall.com / host123
+  After login → turn Go Online ON
+
+ADMIN (optional):
+  https://dir-trader-reduction-tide.trycloudflare.com/admin
+  demo@admin.com / 123456
+========================================
+
+CALL MONEY TEST STEPS:
+1. Friend opens HOST link → login → Go Online ON
+2. You open CUSTOMER link → login
+3. Pick that host → TALK NOW → Audio or Video
+4. Friend Accepts call
+5. Talk 1–2 minutes → End call
+6. Check customer wallet cut + host earnings
+
+Note: Cloudflare quick tunnel URL changes if tunnel restarts.

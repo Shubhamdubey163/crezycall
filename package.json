@@ -1,0 +1,33 @@
+{
+  "name": "crezycall",
+  "version": "1.0.0",
+  "description": "Audio/Video calling platform - Customer, Agent, Admin portals",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "db:setup": "node server/setup-db.js",
+    "seed:admin": "node server/seed-admin.js",
+    "migrate": "node server/migrate.js",
+    "migrate:v2": "node server/migrate-v2.js",
+    "migrate:v3": "node server/migrate-v3.js",
+    "migrate:v4": "node server/migrate-v4.js",
+    "seed:demo-admin": "node server/seed-demo-admin.js",
+    "seed:test-live": "node server/seed-test-live.js",
+    "tunnel": "bash scripts/tunnel-ngrok.sh",
+    "tunnel:url": "bash scripts/print-links.sh"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.13.0",
+    "socket.io": "^4.7.5",
+    "uuid": "^10.0.0"
+  }
+}

@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#0f0a1a">
+  <link rel="icon" href="/assets/crezycall-icon.png?v=2" type="image/png">
+  <title>Crezycall</title>
+  <link rel="stylesheet" href="/css/app.css">
+  <link rel="stylesheet" href="/css/login.css">
+  <link rel="stylesheet" href="/css/customer-flirtzy.css">
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+</head>
+<body class="fc-customer">
+  <div id="auth-view" class="login-page">
+    <div class="login-bg"></div>
+    <div class="login-wrap">
+      <div class="brand-row brand-row-login">
+        <img src="/assets/crezycall-logo.png?v=3" alt="Crezycall" class="login-logo-full">
+      </div>
+      <div id="login-form">
+        <h1 class="login-heading">Log In</h1>
+        <div class="input-group">
+          <input type="email" id="login-email" placeholder="Email" value="user@demo.com" autocomplete="username">
+        </div>
+        <div class="input-group">
+          <input type="password" id="login-password" placeholder="Password" value="user123" autocomplete="current-password">
+        </div>
+        <p id="login-error" class="hidden" style="color:#ff6b6b;font-size:0.85rem;margin:8px 0;text-align:center"></p>
+        <button type="button" class="btn-signin" id="btn-login">Sign In</button>
+        <div class="login-footer">
+          <p><a href="#forgot" data-forgot-password>Forgot Password?</a></p>
+          <p>Don't have an account? <a href="#" id="show-register">Sign Up</a></p>
+          <p style="margin-top:12px;font-size:0.75rem"><a href="/agent">Host Portal</a></p>
+        </div>
+      </div>
+      <div id="register-form" class="hidden register-panel">
+        <h1 class="login-heading">Sign Up</h1>
+        <div class="reg-photo-row">
+          <img id="reg-photo-preview" src="https://i.pravatar.cc/150?img=5" alt="Profile">
+          <label class="reg-photo-btn">
+            Update profile photo
+            <input type="file" id="reg-photo" accept="image/*" hidden>
+          </label>
+        </div>
+        <div class="input-group"><input type="text" id="reg-name" placeholder="Full Name" autocomplete="name"></div>
+        <div class="input-group"><input type="email" id="reg-email" placeholder="Email" autocomplete="email"></div>
+        <div class="input-group"><input type="password" id="reg-password" placeholder="Password (min 6)" autocomplete="new-password"></div>
+        <div class="input-group"><input type="tel" id="reg-phone" placeholder="Phone Number" autocomplete="tel"></div>
+        <div class="input-group reg-select-wrap">
+          <select id="reg-gender" aria-label="Gender">
+            <option value="">Select Gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="input-group"><input type="date" id="reg-dob" aria-label="Date of birth"></div>
+        <p class="reg-hint">18+ required — hosts will see your name and age</p>
+        <p class="reg-hint">Profile photo required — face should be clear (edges may be cropped)</p>
+        <button type="button" class="btn-signin" id="btn-register">Create Account</button>
+        <div class="login-footer"><p><a href="#" id="show-login">Sign In</a></p></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="main-view" class="fc-app hidden">
+    <!-- DISCOVER -->
+    <div id="screen-discover" class="fc-screen fc-tab-screen active">
+      <header class="fc-topbar">
+        <div class="fc-topbar-row">
+          <img src="/assets/crezycall-icon.png?v=2" alt="Crezycall" class="fc-logo-icon">
+          <div class="fc-topbar-tabs">
+            <button type="button" class="fc-topbar-tab active" data-list="all">All</button>
+            <button type="button" class="fc-topbar-tab" data-list="new">New</button>
+            <button type="button" class="fc-topbar-tab" data-list="follow">Follower</button>
+          </div>
+          <button type="button" class="fc-wallet-pill" id="wallet-display" title="Recharge">
+            <span class="fc-diamond">💎</span>
+            <span id="wallet-amount">0.00</span>
+          </button>
+          <button type="button" class="fc-filter-btn" id="btn-open-filter" aria-label="Filter">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"/></svg>
+          </button>
+        </div>
+      </header>
+      <div id="random-filter-banner" class="fc-random-banner hidden"></div>
+      <div class="fc-list" id="agents-list"></div>
+      <button type="button" class="fc-fab" id="btn-random-match">
+        Random Match
+        <small>💎 <span id="random-rate">30</span>/min</small>
+      </button>
+    </div>
+
+    <!-- HOST DETAIL -->
+    <div id="screen-host-detail" class="fc-screen fc-subpage">
+      <header class="fc-host-header">
+        <button type="button" class="fc-host-back" id="host-detail-back" aria-label="Back">←</button>
+        <h1 id="host-detail-title">Host</h1>
+        <button type="button" class="fc-host-menu" id="host-detail-menu" aria-label="Menu">⋮</button>
+      </header>
+      <div id="host-detail-content" class="fc-host-detail"></div>
+      <div class="fc-host-action-bar hidden" id="host-detail-footer">
+        <button type="button" class="fc-host-btn-outline" id="detail-say-hi">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12z"/></svg>
+          Say Hi
+        </button>
+        <button type="button" class="fc-host-btn-fill" id="detail-call">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24 11.36 11.36 0 003.56.57 1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1 11.36 11.36 0 00.57 3.56 1 1 0 01-.25 1.01l-2.2 2.22z"/></svg>
+          Call
+        </button>
+      </div>
+    </div>
+
+    <!-- CHATS -->
+    <div id="screen-chats" class="fc-screen fc-tab-screen">
+      <header class="fc-page-header fc-page-header-compact">
+        <img src="/assets/crezycall-icon.png?v=2" alt="Crezycall" class="fc-logo-icon">
+        <h1>CHATS</h1>
+        <span class="fc-header-spacer"></span>
+      </header>
+      <div class="fc-chats-tabs">
+        <button type="button" class="fc-chats-tab active" data-chats="my">My chats</button>
+        <button type="button" class="fc-chats-tab" data-chats="system">System</button>
+      </div>
+      <div id="chats-list"></div>
+    </div>
+
+    <!-- PROFILE — ref img 4 -->
+    <div id="screen-profile" class="fc-screen fc-screen-light fc-tab-screen">
+      <div class="fc-profile-header-card">
+        <img id="profile-avatar" src="https://i.pravatar.cc/150?img=5" alt="">
+        <div class="fc-profile-header-text">
+          <div id="profile-name" class="fc-profile-username">User</div>
+          <div class="fc-profile-meta-row">
+            <span id="profile-gender-age">Member</span>
+          </div>
+        </div>
+        <button type="button" class="fc-profile-edit-btn" id="btn-profile-edit">EDIT</button>
+      </div>
+      <div class="fc-menu-list-light">
+        <button type="button" class="fc-menu-item-light" id="btn-tx-history">
+          <span class="mi mi-phone"></span>
+          <span class="label">Talktime Transactions</span>
+          <span class="chev">›</span>
+        </button>
+        <button type="button" class="fc-menu-item-light" data-go="talktime">
+          <span class="mi mi-phone"></span>
+          <span class="label">Talktime</span>
+          <span class="fc-menu-coins"><span class="coin-icon">🪙</span><span class="coin-val" id="profile-wallet">0.0</span></span>
+          <span class="chev">›</span>
+        </button>
+        <button type="button" class="fc-menu-item-light" id="btn-blocked-list">
+          <span class="mi mi-block"></span>
+          <span class="label">Blocked &amp; Hidden List</span>
+          <span class="chev">›</span>
+        </button>
+        <button type="button" class="fc-menu-item-light" id="btn-settings">
+          <span class="mi mi-settings"></span>
+          <span class="label">Settings</span>
+          <span class="chev">›</span>
+        </button>
+        <button type="button" class="fc-menu-item-light">
+          <span class="mi mi-levels"></span>
+          <span class="label">Levels</span>
+          <span class="chev">›</span>
+        </button>
+        <button type="button" class="fc-menu-item-light">
+          <span class="mi mi-refresh"></span>
+          <span class="label">Check for Updates</span>
+          <span class="chev">›</span>
+        </button>
+        <button type="button" class="fc-menu-item-light" id="btn-logout-profile">
+          <span class="mi mi-logout"></span>
+          <span class="label">Logout</span>
+          <span class="chev">›</span>
+        </button>
+      </div>
+      <p class="fc-profile-id-link" id="profile-id">ID:—</p>
+    </div>
+
+    <!-- TALKTIME page — ref img 3 -->
+    <div id="screen-talktime" class="fc-screen fc-screen-light fc-talktime-page fc-subpage">
+      <header class="fc-talktime-header">
+        <button type="button" class="fc-back-light" id="talktime-back" aria-label="Back">←</button>
+        <h1>TALKTIME</h1>
+      </header>
+      <div class="fc-talktime-scroll">
+        <div class="fc-talktime-balance-light">
+          <div class="label">Available Talktime</div>
+          <div class="amount-row"><span class="coin-gold">🪙</span><span id="wallet-big">0.0</span></div>
+        </div>
+        <div class="fc-talktime-body">
+          <h3 class="add-title">Add Talktime</h3>
+          <div class="fc-recharge-grid-light" id="talktime-grid"></div>
+          <div id="tx-list" class="fc-tx-list-light"></div>
+        </div>
+      </div>
+      <div class="fc-talktime-footer">
+        <button type="button" class="fc-continue-btn-light" id="btn-talktime-continue">Continue</button>
+      </div>
+    </div>
+
+    <!-- Bottom nav -->
+    <nav class="fc-bottom-nav">
+      <button type="button" class="fc-nav-item active" data-nav="discover" aria-label="Discover">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"/></svg>
+      </button>
+      <button type="button" class="fc-nav-item" data-nav="chats" aria-label="Chats">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12z"/></svg>
+      </button>
+      <button type="button" class="fc-nav-item" data-nav="profile" aria-label="Profile">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+      </button>
+    </nav>
+  </div>
+
+  <!-- Edit profile -->
+  <div id="edit-profile-modal" class="fc-overlay hidden">
+    <div class="fc-sheet fc-edit-profile-sheet">
+      <div class="fc-sheet-header"><strong>Edit profile</strong><button type="button" class="fc-sheet-close" id="edit-profile-close">✕</button></div>
+      <div class="fc-edit-photo-row">
+        <img id="edit-photo-preview" src="https://i.pravatar.cc/150?img=5" alt="Profile">
+        <label class="fc-edit-photo-btn">
+          Choose from gallery
+          <input type="file" id="edit-photo" accept="image/*" hidden>
+        </label>
+      </div>
+      <div class="input-group fc-sheet-input"><input type="text" id="edit-name" placeholder="Your name"></div>
+      <div class="input-group fc-sheet-input"><input type="tel" id="edit-phone" placeholder="Phone number"></div>
+      <button type="button" class="fc-apply-btn" id="edit-profile-save">Save</button>
+    </div>
+  </div>
+
+  <!-- Block host -->
+  <div id="block-modal" class="fc-overlay hidden">
+    <div class="fc-sheet">
+      <div class="fc-sheet-header"><strong>Block host</strong><button type="button" class="fc-sheet-close" id="block-modal-close">✕</button></div>
+      <p style="font-size:0.85rem;color:var(--muted);margin-bottom:8px">Reason optional</p>
+      <div class="input-group"><input type="text" id="block-reason" placeholder="Reason (optional)"></div>
+      <button type="button" class="fc-apply-btn fc-danger-btn" id="block-confirm">Block</button>
+    </div>
+  </div>
+
+  <!-- Blocked list sheet -->
+  <div id="blocked-modal" class="fc-overlay hidden">
+    <div class="fc-sheet">
+      <div class="fc-sheet-header"><strong>Blocked &amp; Hidden</strong><button type="button" class="fc-sheet-close" id="blocked-modal-close">✕</button></div>
+      <div id="blocked-list" class="fc-list-pad"></div>
+    </div>
+  </div>
+
+  <!-- Blocked host profile -->
+  <div id="blocked-profile-modal" class="fc-overlay hidden">
+    <div class="fc-sheet fc-blocked-profile-sheet">
+      <button type="button" class="fc-sheet-close" id="blocked-profile-close" style="position:absolute;top:12px;right:12px">✕</button>
+      <div class="fc-blocked-profile-hero">
+        <img id="blocked-profile-photo" src="" alt="">
+        <h3 id="blocked-profile-name">Host</h3>
+        <p id="blocked-profile-reason" class="fc-blocked-reason"></p>
+      </div>
+      <button type="button" class="fc-apply-btn" id="btn-unblock-host">Unblock</button>
+    </div>
+  </div>
+
+  <!-- Settings sheet -->
+  <div id="settings-modal" class="fc-overlay hidden">
+    <div class="fc-sheet">
+      <div class="fc-sheet-header"><strong>Settings</strong><button type="button" class="fc-sheet-close" id="settings-modal-close">✕</button></div>
+      <div class="fc-menu-list-light fc-settings-body">
+        <button type="button" class="fc-menu-item-light" id="btn-change-password">Change password</button>
+        <button type="button" class="fc-menu-item-light fc-danger-text" id="btn-disable-account">Disable account</button>
+        <button type="button" class="fc-menu-item-light fc-danger-text" id="btn-delete-account">Delete account permanently</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Host menu -->
+  <div id="host-menu-sheet" class="fc-overlay hidden">
+    <div class="fc-sheet">
+      <button type="button" class="fc-menu-item-light" id="host-menu-block">Block host</button>
+      <button type="button" class="fc-menu-item-light" id="host-menu-report">Report (coming soon)</button>
+      <button type="button" class="fc-dismiss-btn" id="host-menu-close" style="margin-top:12px">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Filter sheet -->
+  <div id="filter-modal" class="fc-overlay hidden">
+    <div class="fc-sheet">
+      <div class="fc-sheet-header">
+        <strong>Filter</strong>
+        <button type="button" class="fc-sheet-close" id="filter-close">✕</button>
+      </div>
+      <input type="search" class="fc-search-input" id="filter-search" placeholder="Search by name or ID">
+      <div class="fc-filter-section">
+        <h4>Sort by</h4>
+        <div class="fc-pill-row" id="filter-sort">
+          <button type="button" class="fc-pill" data-sort="default">Recently joined</button>
+          <button type="button" class="fc-pill" data-sort="price_high">Price high to low</button>
+          <button type="button" class="fc-pill active" data-sort="price_low">Price low to high</button>
+        </div>
+      </div>
+      <div class="fc-filter-section">
+        <h4>Filter by Language</h4>
+        <div class="fc-pill-row" id="filter-lang">
+          <button type="button" class="fc-pill active" data-lang="">All</button>
+          <button type="button" class="fc-pill" data-lang="Hindi">Hindi</button>
+          <button type="button" class="fc-pill" data-lang="English">English</button>
+          <button type="button" class="fc-pill" data-lang="Tamil">Tamil</button>
+          <button type="button" class="fc-pill" data-lang="Telugu">Telugu</button>
+          <button type="button" class="fc-pill" data-lang="Marathi">Marathi</button>
+          <button type="button" class="fc-pill" data-lang="Punjabi">Punjabi</button>
+        </div>
+      </div>
+      <div class="fc-sheet-footer">
+        <button type="button" class="fc-dismiss-btn" id="filter-dismiss">DISMISS</button>
+        <button type="button" class="fc-apply-btn" id="filter-apply">APPLY</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Deposit bottom sheet — ref img 2 (low balance) -->
+  <div id="deposit-modal" class="fc-bs-overlay" aria-hidden="true">
+    <div class="fc-bs-backdrop" data-close="deposit-modal"></div>
+    <div class="fc-bs-sheet fc-bs-sheet-white fc-deposit-sheet">
+      <div class="fc-deposit-sheet-top">
+        <p class="fc-deposit-notice">Minimum talktime of 1 minute (<span class="coin-gold">🪙</span> <span id="min-call-coins">30</span>) is required to start call. Recharge now!</p>
+        <button type="button" class="fc-bs-close-dark" id="deposit-close" aria-label="Close">✕</button>
+      </div>
+      <div class="fc-recharge-popup-grid" id="deposit-offers-list"></div>
+    </div>
+  </div>
+
+  <!-- Talk now bottom sheet — ref img 1 -->
+  <div id="talk-now-modal" class="fc-bs-overlay" aria-hidden="true">
+    <div class="fc-bs-backdrop" data-close="talk-now-modal"></div>
+    <div class="fc-bs-sheet fc-bs-sheet-white fc-talk-sheet">
+      <button type="button" class="fc-bs-close-dark" id="talk-now-close" aria-label="Close">✕</button>
+      <div class="fc-talk-note">
+        <p><strong>Note:</strong> Do not trust any other information. Do not share your personal details. Do not engage in any illegal or indecent activity. We are not responsible for any such activity.</p>
+      </div>
+      <hr class="fc-talk-divider">
+      <div class="fc-talk-actions">
+        <button type="button" class="fc-talk-type-btn" id="talk-opt-audio">
+          <span>Audio</span>
+          <span class="fc-talk-rate"><span class="coin-gold">🪙</span> <span id="talk-rate-audio">0</span>/min</span>
+        </button>
+        <button type="button" class="fc-talk-type-btn" id="talk-opt-video">
+          <span>Video</span>
+          <span class="fc-talk-rate"><span class="coin-gold">🪙</span> <span id="talk-rate-video">0</span>/min</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Call modal -->
+  <div id="call-modal" class="modal-overlay hidden">
+    <div class="modal call-screen">
+      <h2 id="call-status">Connecting...</h2>
+      <p id="call-timer" style="color:var(--muted);margin:8px 0"></p>
+      <p id="call-billing-info" style="font-size:0.85rem;color:var(--gold);margin-bottom:8px"></p>
+      <div class="call-videos">
+        <video id="remote-video" autoplay playsinline class="hidden"></video>
+        <video id="local-video" autoplay muted playsinline class="hidden call-pip"></video>
+      </div>
+      <audio id="remote-audio" autoplay playsinline webkit-playsinline class="hidden"></audio>
+      <button type="button" id="btn-unlock-sound" class="btn-unlock-sound hidden">Tap for sound</button>
+      <button type="button" class="btn btn-danger" id="btn-end-call">End Call</button>
+    </div>
+  </div>
+
+  <script src="/js/photo-crop.js?v=28"></script>
+  <script src="/js/api.js?v=28"></script>
+  <script src="/js/forgot-password.js?v=18"></script>
+  <script src="/customer/customer-login.js?v=20"></script>
+  <script src="/js/call-alerts.js?v=18"></script>
+  <script src="/js/platform-config.js?v=18"></script>
+  <script src="/js/call-engine.js?v=18"></script>
+  <script src="/customer/app.js?v=28"></script>
+</body>
+</html>

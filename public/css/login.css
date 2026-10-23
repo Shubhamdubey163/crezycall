@@ -1,0 +1,235 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+
+.hidden { display: none !important; }
+
+.login-page {
+  min-height: 100vh;
+  font-family: 'Poppins', system-ui, sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+
+.login-bg {
+  position: fixed;
+  inset: 0;
+  background: url('https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=800&q=80') center/cover no-repeat;
+  z-index: 0;
+}
+
+.login-bg::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(15, 8, 28, 0.75) 0%, rgba(15, 8, 28, 0.92) 55%, rgba(10, 5, 20, 0.98) 100%);
+}
+
+.login-wrap {
+  position: relative;
+  z-index: 1;
+  max-width: 420px;
+  margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 28px 24px 32px;
+}
+
+.brand-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+.brand-row-login {
+  margin-top: 8px;
+  margin-bottom: 24px;
+}
+
+.brand-row .login-logo-full {
+  width: auto;
+  height: 56px;
+  max-width: min(300px, 90vw);
+  object-fit: contain;
+  display: block;
+}
+
+.brand-row img:not(.login-logo-full) {
+  width: 42px;
+  height: 42px;
+}
+
+.brand-name {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #ff2d78;
+  letter-spacing: -0.02em;
+}
+
+.login-heading {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 28px;
+}
+
+.input-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  padding: 0 16px;
+  margin-bottom: 14px;
+  backdrop-filter: blur(8px);
+}
+
+.input-group svg {
+  width: 20px;
+  height: 20px;
+  color: rgba(255, 255, 255, 0.5);
+  flex-shrink: 0;
+}
+
+.input-group input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 16px 0;
+  color: #fff;
+  font-size: 0.95rem;
+  margin: 0;
+  outline: none;
+}
+
+.input-group input::placeholder { color: rgba(255, 255, 255, 0.45); }
+
+.btn-signin {
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #ff2d78, #e91e8c);
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  margin: 8px 0 16px;
+  box-shadow: 0 8px 24px rgba(255, 45, 120, 0.35);
+}
+
+.btn-signin:hover { filter: brightness(1.08); }
+
+.btn-alt {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
+.btn-alt:hover { background: rgba(255, 255, 255, 0.1); }
+
+.login-footer {
+  margin-top: auto;
+  text-align: center;
+  padding-top: 24px;
+}
+
+.login-footer a {
+  color: #ff2d78;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.login-footer p {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.85rem;
+  margin: 8px 0;
+}
+
+.portal-tag {
+  display: inline-block;
+  font-size: 0.7rem;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: rgba(155, 93, 229, 0.35);
+  color: #e0c8ff;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+.register-panel label {
+  display: block;
+  font-size: 0.8rem;
+  color: rgba(255,255,255,0.6);
+  margin: 8px 0 4px;
+}
+
+.register-panel .input-group { margin-bottom: 10px; }
+
+.register-panel {
+  overflow-y: auto;
+  max-height: calc(100dvh - 48px);
+  padding-bottom: 16px;
+}
+
+.reg-photo-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.reg-photo-row img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center 20%;
+  border: 3px solid rgba(255, 45, 120, 0.45);
+}
+
+.reg-photo-btn {
+  font-size: 0.85rem;
+  color: #ff2d78;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.reg-select-wrap select,
+.input-group input[type="date"] {
+  flex: 1;
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 16px 0;
+  color: #fff;
+  font-size: 0.95rem;
+  font-family: inherit;
+  outline: none;
+}
+
+.reg-select-wrap select option {
+  color: #111;
+}
+
+.reg-hint {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin: -4px 0 12px;
+  text-align: center;
+}

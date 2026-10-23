@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crezycall Admin</title>
+  <link rel="stylesheet" href="/css/admin.css?v=26">
+  <link rel="icon" href="/assets/logo.svg" type="image/svg+xml">
+</head>
+<body>
+  <div id="auth-view" class="admin-login-page">
+    <div class="admin-login-card">
+      <div class="logo-wrap">
+        <img src="/assets/logo.svg" alt="Crezycall">
+        <h1>Crezycall</h1>
+        <p class="sub">Admin Panel Login</p>
+      </div>
+      <label>Email</label>
+      <input type="email" id="login-email" value="superadmin@crezycall.com">
+      <label>Password</label>
+      <input type="password" id="login-password" value="super123">
+      <button class="btn-login" id="btn-login">Sign In</button>
+      <p id="login-error" class="hidden" style="color:#f87171;font-size:0.85rem;margin-top:12px;text-align:center"></p>
+      <p style="text-align:center;margin-top:14px;font-size:0.72rem;color:#64748b;line-height:1.7">
+        Super: superadmin@crezycall.com / super123<br>
+        Employee: demo@admin.com / 123456
+      </p>
+    </div>
+  </div>
+
+  <div id="main-view" class="admin-shell hidden">
+    <aside class="admin-sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <img src="/assets/logo.svg" alt="">
+        <span class="logo-text">Crezycall</span>
+      </div>
+      <nav class="sidebar-nav" id="sidebar-nav"></nav>
+      <div class="sidebar-footer">
+        <a href="/customer" target="_blank">User App</a>
+        <a href="/agent" target="_blank">Host App</a>
+      </div>
+    </aside>
+
+    <div class="admin-main" id="admin-main">
+      <header class="admin-topbar">
+        <div class="topbar-left">
+          <button type="button" class="menu-toggle" id="menu-toggle" aria-label="Menu">☰</button>
+          <div class="breadcrumb">
+            <span>🏠</span>
+            <span class="current" id="breadcrumb-current">Dashboard</span>
+          </div>
+        </div>
+        <div class="topbar-right">
+          <div class="topbar-icon" title="Notifications">🔔</div>
+          <div class="topbar-avatar" id="admin-avatar" title="Profile">A</div>
+          <button type="button" class="btn-logout-sm" id="btn-logout">Logout</button>
+        </div>
+      </header>
+      <main class="admin-content" id="admin-panels"></main>
+    </div>
+  </div>
+
+  <script src="/js/photo-crop.js?v=28"></script>
+  <script src="/js/api.js?v=28"></script>
+  <script src="/admin/app.js?v=28"></script>
+</body>
+</html>

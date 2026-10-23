@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#0f0a1a">
+  <title>Crezycall - Host</title>
+  <link rel="stylesheet" href="/css/app.css">
+  <link rel="stylesheet" href="/css/login.css">
+  <link rel="icon" href="/assets/logo.svg" type="image/svg+xml">
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+</head>
+<body>
+  <div id="auth-view" class="login-page">
+    <div class="login-bg"></div>
+    <div class="login-wrap">
+      <div class="brand-row">
+        <img src="/assets/logo.svg" alt="Crezycall">
+        <span class="brand-name">Crezycall<span class="portal-tag">Host</span></span>
+      </div>
+
+      <div id="login-form">
+        <h1 class="login-heading">Log In</h1>
+        <div class="input-group">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+          <input type="email" id="login-email" placeholder="Email" value="host@crezycall.com" autocomplete="username">
+        </div>
+        <div class="input-group">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.8-2.2-5-5-5S7 3.2 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>
+          <input type="password" id="login-password" placeholder="Password" value="host123" autocomplete="current-password">
+        </div>
+        <p id="login-error" class="hidden" style="color:#ff6b6b;font-size:0.85rem;margin:8px 0;text-align:center"></p>
+        <button type="button" class="btn-signin" id="btn-login">Sign In</button>
+        <button type="button" class="btn-alt" id="btn-quick">🚀 Quick Login (Demo Host)</button>
+        <p style="margin-top:14px;padding:10px;background:rgba(0,0,0,0.35);border-radius:8px;font-size:0.72rem;line-height:1.6;color:rgba(255,255,255,0.85)">
+          <strong>Live test (friend):</strong> host@crezycall.com / host123<br>
+          After login, turn <strong>Go Online</strong> ON and accept calls
+        </p>
+        <div class="login-footer">
+          <p>Become a host? <a href="#" id="show-register">Sign Up</a></p>
+          <p style="margin-top:8px"><a href="#forgot" data-forgot-password>Forgot Password?</a></p>
+          <p style="margin-top:12px;font-size:0.75rem"><a href="/customer">User App</a> · <a href="/admin">Admin</a></p>
+        </div>
+      </div>
+
+      <div id="register-step1" class="hidden register-panel">
+        <h1 class="login-heading">Step 1 — Details</h1>
+        <div class="input-group"><input type="text" id="reg-name" placeholder="Full Name *"></div>
+        <div class="input-group"><input type="tel" id="reg-phone" placeholder="Mobile No *"></div>
+        <div class="input-group"><input type="email" id="reg-email" placeholder="Email *"></div>
+        <div class="input-group"><input type="password" id="reg-password" placeholder="Password *"></div>
+        <div class="input-group"><input type="text" id="reg-display" placeholder="Display Name *"></div>
+        <div class="input-group"><input type="number" id="reg-age" placeholder="Age (18+) *" min="18"></div>
+        <button class="btn-signin" id="btn-reg-next">Next → Face Scan</button>
+        <div class="login-footer"><p><a href="#" id="show-login">Back to Sign In</a></p></div>
+      </div>
+      <div id="register-step2" class="hidden register-panel">
+        <h1 class="login-heading">Step 2 — Face Verify</h1>
+        <p style="font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:12px">Like Facebook — turn face left, right, up, down</p>
+        <div id="face-verify-box"></div>
+        <div class="login-footer"><p><a href="#" id="reg-back-1">← Back</a></p></div>
+      </div>
+      <div id="register-step3" class="hidden register-panel">
+        <h1 class="login-heading">Step 3 — Verify Photo</h1>
+        <p style="font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:12px">For admin verification — you will set a separate display photo later</p>
+        <div class="reg-photo-row">
+          <img id="reg-photo-preview" src="https://i.pravatar.cc/150?img=32" alt="Verify" style="width:88px;height:88px;border-radius:50%;object-fit:cover;object-position:center 20%">
+          <label class="reg-photo-btn">
+            Upload verification photo
+            <input type="file" id="reg-photo-file" accept="image/*" capture="user" hidden>
+          </label>
+        </div>
+        <button class="btn-signin" id="btn-reg-finish">Submit Registration</button>
+        <div class="login-footer"><p><a href="#" id="reg-back-2">← Back</a></p></div>
+      </div>
+      <div id="register-done" class="hidden register-panel" style="text-align:center">
+        <h1 class="login-heading">✅ Done!</h1>
+        <p style="color:rgba(255,255,255,0.85);line-height:1.6">Our team will review your face scan and approve you. Then you will appear to users.</p>
+        <button class="btn-signin" id="btn-reg-done-login" style="margin-top:20px">Go to Login</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container hidden" id="main-view">
+    <div class="header crezy-header">
+      <div class="brand-inline"><img src="/assets/logo.svg" alt=""><span class="logo-text">Host Center</span></div>
+      <span id="status-badge" class="badge">pending</span>
+    </div>
+    <div class="toggle">
+      <div><strong>Go Online</strong><p style="font-size:0.8rem;color:var(--muted)">Receive calls</p></div>
+      <div class="switch" id="online-switch"></div>
+    </div>
+    <div class="card profile-balance-card" id="profile-card"></div>
+      <div class="tabs">
+        <button class="tab active" data-tab="earnings">Earnings</button>
+        <button class="tab" data-tab="statement">Statement</button>
+        <button class="tab" data-tab="calls">Calls</button>
+        <button class="tab" data-tab="messages">Messages</button>
+        <button class="tab" data-tab="profile">Profile</button>
+      </div>
+    <div id="tab-earnings">
+      <div id="recent-contacts-host" class="hidden" style="margin-bottom:16px">
+        <div class="section-title">Recent users</div>
+        <div id="recent-contacts-list" class="recent-users-grid"></div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-value" id="total-earn">₹0</div><div class="stat-label">Total</div></div>
+        <div class="stat-card"><div class="stat-value" id="avail-balance">₹0</div><div class="stat-label">Available</div></div>
+      </div>
+      <div class="card">
+        <p style="font-size:0.9rem;color:var(--muted)">Platform fee <strong id="fee-pct">10%</strong> — ₹100 → ₹90 yours</p>
+        <button class="btn btn-primary" id="btn-withdraw" style="margin-top:12px">Withdraw (min ₹100)</button>
+      </div>
+      <div id="withdrawals-list"></div>
+    </div>
+    <div id="tab-statement" class="hidden"><div id="statement-list"></div></div>
+    <div id="tab-calls" class="hidden"><div id="calls-list"></div></div>
+    <div id="tab-messages" class="hidden"><div id="messages-list" class="msg-inbox-list"></div></div>
+    <div id="tab-profile" class="hidden">
+      <div class="card">
+        <h4 style="margin-bottom:8px">Display Profile</h4>
+        <p style="font-size:0.8rem;color:var(--muted);margin-bottom:14px">This name and photo are shown to users (verification photo is separate)</p>
+        <div class="host-display-photo-row">
+          <img id="prof-photo-preview" class="avatar-face" src="https://i.pravatar.cc/300?img=32" alt="Profile">
+          <label class="host-photo-upload-btn">
+            Change display photo
+            <input type="file" id="prof-photo-file" accept="image/*" hidden>
+          </label>
+        </div>
+        <label style="font-size:0.8rem;color:var(--muted)">Display name</label>
+        <input type="text" id="prof-display" style="width:100%;margin:8px 0 12px;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text)">
+        <label style="font-size:0.8rem;color:var(--muted)">Bio</label>
+        <textarea id="prof-bio" rows="3" style="width:100%;margin:8px 0 12px;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text)"></textarea>
+        <label style="font-size:0.8rem;color:var(--muted)">Topics (comma separated)</label>
+        <input type="text" id="prof-topics" style="width:100%;margin:8px 0 12px;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text)">
+        <label style="font-size:0.8rem;color:var(--muted)">Languages</label>
+        <input type="text" id="prof-lang" style="width:100%;margin:8px 0 12px;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text)">
+        <label style="font-size:0.8rem;color:var(--muted)">Age</label>
+        <input type="number" id="prof-age" min="18" max="99" style="width:100%;margin:8px 0 12px;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text)">
+        <button type="button" class="btn btn-primary" id="btn-save-profile" style="width:100%">Save Display Profile</button>
+      </div>
+    </div>
+    <button class="btn btn-secondary" style="margin-top:20px;width:100%" id="btn-logout">Logout</button>
+  </div>
+
+  <div id="display-profile-modal" class="host-setup-overlay hidden">
+    <div class="host-setup-card">
+      <h3>🎉 Approved! Set your display profile</h3>
+      <p>Users will see this name and photo. Keep your face clear — edges may be cropped.</p>
+      <div class="host-display-photo-row">
+        <img id="setup-photo-preview" class="avatar-face" src="https://i.pravatar.cc/300?img=32" alt="">
+        <label class="host-photo-upload-btn">
+          Upload display photo
+          <input type="file" id="setup-photo-file" accept="image/*" hidden>
+        </label>
+      </div>
+      <label style="font-size:0.8rem;color:var(--muted)">Display name</label>
+      <input type="text" id="setup-display" placeholder="Display name" style="width:100%;margin:8px 0 16px;padding:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text)">
+      <button type="button" class="btn btn-primary" id="btn-setup-save" style="width:100%">Save &amp; Go Online</button>
+    </div>
+  </div>
+
+  <div id="chat-screen" class="chat-screen hidden">
+    <div class="chat-topbar">
+      <button type="button" class="chat-back-btn" id="chat-back" aria-label="Back">←</button>
+      <div class="chat-topbar-info">
+        <div class="chat-topbar-avatar" id="chat-avatar">U</div>
+        <div>
+          <div class="chat-topbar-name" id="chat-title">User</div>
+          <div class="chat-topbar-status" id="chat-subtitle">Last active</div>
+        </div>
+      </div>
+    </div>
+    <div class="chat-body" id="chat-messages"></div>
+    <div class="chat-footer">
+      <input type="text" id="chat-reply-input" placeholder="Type a message..." autocomplete="off">
+      <button type="button" class="btn btn-primary" id="chat-send-btn">Send</button>
+    </div>
+  </div>
+
+  <div id="incoming-modal" class="modal-overlay hidden">
+    <div class="modal">
+      <h2>📞 Incoming Call</h2>
+      <p id="incoming-info" style="margin:12px 0;color:var(--muted)"></p>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-primary" style="flex:1" id="btn-accept">Accept</button>
+        <button class="btn btn-danger" style="flex:1" id="btn-reject">Reject</button>
+      </div>
+    </div>
+  </div>
+  <div id="active-call-modal" class="modal-overlay hidden">
+    <div class="modal call-screen">
+      <h2>On Call</h2>
+      <p id="agent-call-timer"></p>
+      <p id="agent-billing-info" style="font-size:0.85rem;color:var(--gold);margin-bottom:8px"></p>
+      <div class="call-videos">
+        <video id="remote-video" autoplay playsinline class="hidden"></video>
+        <video id="local-video" autoplay muted playsinline class="hidden call-pip"></video>
+      </div>
+      <audio id="remote-audio" autoplay playsinline webkit-playsinline class="hidden"></audio>
+      <button type="button" id="btn-unlock-sound" class="btn-unlock-sound hidden">🔊 Tap to enable sound</button>
+      <button type="button" class="btn btn-danger" id="btn-end-call">End Call</button>
+    </div>
+  </div>
+
+  <script src="/js/photo-crop.js?v=28"></script>
+  <script src="/js/api.js?v=28"></script>
+  <script src="/js/forgot-password.js?v=8"></script>
+  <script src="/js/call-alerts.js?v=8"></script>
+  <script src="/agent/host-login.js?v=8"></script>
+  <script src="/js/platform-config.js?v=8"></script>
+  <script src="/js/call-engine.js?v=8"></script>
+  <script src="/js/face-verify.js?v=8"></script>
+  <script src="/agent/app.js?v=28"></script>
+</body>
+</html>
