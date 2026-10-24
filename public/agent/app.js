@@ -587,15 +587,29 @@ function cleanupMedia() {
 }
 
 function bindCallButtons() {
-  $('btn-unlock-sound')?.addEventListener('click', () => {
+  $('btn-unlock-sound')?.addEventListener('click', async () => {
     CallAlerts?.unlock();
-    window._retryCallAudio?.();
-    $('btn-unlock-sound')?.classList.add('hidden');
+    if (typeof window._retryCallMedia === 'function') {
+      const ok = await window._retryCallMedia();
+      if (ok) $('btn-unlock-sound')?.classList.add('hidden');
+    } else {
+      window._retryCallAudio?.();
+      $('btn-unlock-sound')?.classList.add('hidden');
+    }
   });
 
-  $('btn-accept')?.addEventListener('click', () => {
+  $('btn-accept')?.addEventListener('click', async () => {
     CallAlerts?.unlock();
     CallAlerts?.stopRinging();
+    try {
+      // iOS: get mic on Accept tap, before socket round-trip
+      if (typeof prepareCallMedia === 'function') {
+        await prepareCallMedia(callType || 'audio');
+      }
+    } catch (e) {
+      toast(e.message || 'Mic allow karo phir Accept dabao', true);
+      return;
+    }
     if (socket && incomingCallId) {
       socket.emit('call:accept', { callId: incomingCallId });
       currentCallId = incomingCallId;

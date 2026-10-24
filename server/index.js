@@ -32,6 +32,12 @@ const io = new Server(server, {
 app.use(cors());
 app.use(express.json({ limit: '8mb' }));
 app.use(express.urlencoded({ extended: true, limit: '8mb' }));
+app.use((req, res, next) => {
+  // Allow mic/camera for WebRTC on mobile browsers
+  res.setHeader('Permissions-Policy', 'camera=(self), microphone=(self), display-capture=(self)');
+  res.setHeader('Feature-Policy', "camera 'self'; microphone 'self'");
+  next();
+});
 app.use(express.static(path.join(__dirname, '../public')));
 
 app.use('/api/auth', authRoutes);

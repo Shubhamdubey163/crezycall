@@ -1216,26 +1216,36 @@ window.startCall = async function (agentId, callType, rate) {
   currentCallType = callType;
   currentRate = rate;
   $('call-modal').classList.remove('hidden');
-  $('call-status').textContent = `Connecting...`;
+  $('call-status').textContent = `Mic allow karo...`;
   $('call-timer').textContent = `₹${rate}/min · 1st minute FREE`;
   $('call-billing-info').textContent = '';
   $('local-video').classList.add('hidden');
   $('remote-video').classList.add('hidden');
   $('remote-audio').classList.add('hidden');
+  $('btn-unlock-sound')?.classList.remove('hidden');
   try {
+    // Must run inside this tap — iOS blocks getUserMedia later in socket handlers
+    if (typeof prepareCallMedia === 'function') {
+      await prepareCallMedia(callType);
+    }
     await waitForSocket();
     $('call-status').textContent = `Requesting ${callType} call...`;
     socket.emit('call:request', { agentId, callType });
   } catch (e) {
-    toast(e.message, true);
+    toast(e.message || 'Mic/Camera allow karo', true);
     endCallUI();
   }
 };
 
-$('btn-unlock-sound')?.addEventListener('click', () => {
+$('btn-unlock-sound')?.addEventListener('click', async () => {
   CallAlerts?.unlock();
-  window._retryCallAudio?.();
-  $('btn-unlock-sound')?.classList.add('hidden');
+  if (typeof window._retryCallMedia === 'function') {
+    const ok = await window._retryCallMedia();
+    if (ok) $('btn-unlock-sound')?.classList.add('hidden');
+  } else {
+    window._retryCallAudio?.();
+    $('btn-unlock-sound')?.classList.add('hidden');
+  }
 });
 
 $('btn-end-call').onclick = () => {

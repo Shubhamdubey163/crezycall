@@ -1,13 +1,83 @@
 /**
  * WebRTC — STUN + TURN, reliable signaling, remote audio/video play
+ * Mobile: acquire mic/camera on a real user tap (iOS blocks delayed getUserMedia).
  */
-function createCallEngine({ socket, callId, isCaller, callType, elements }) {
+
+async function requestUserMedia(callType) {
+  if (!window.isSecureContext) {
+    throw new Error('HTTPS chahiye mic/camera ke liye (http pe mobile allow nahi karta)');
+  }
+  if (!navigator.mediaDevices?.getUserMedia) {
+    throw new Error('Browser mic/camera support nahi karta — Chrome/Safari latest use karo');
+  }
+
+  const wantVideo = callType === 'video';
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+  const attempts = [
+    {
+      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+      video: wantVideo
+        ? {
+            facingMode: 'user',
+            width: { ideal: isMobile ? 480 : 640 },
+            height: { ideal: isMobile ? 640 : 480 },
+            frameRate: { ideal: 24, max: 30 },
+          }
+        : false,
+    },
+    {
+      audio: true,
+      video: wantVideo ? { facingMode: 'user' } : false,
+    },
+    {
+      audio: true,
+      video: wantVideo,
+    },
+  ];
+
+  let lastErr;
+  for (const constraints of attempts) {
+    try {
+      return await navigator.mediaDevices.getUserMedia(constraints);
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  throw lastErr || new Error('Mic/Camera unavailable');
+}
+
+/** Call this inside a click/tap handler before starting the call (required on iOS). */
+async function prepareCallMedia(callType) {
+  if (window.__pendingLocalStream) {
+    window.__pendingLocalStream.getTracks().forEach((t) => t.stop());
+    window.__pendingLocalStream = null;
+  }
+  const stream = await requestUserMedia(callType);
+  window.__pendingLocalStream = stream;
+  window.__pendingCallType = callType;
+  return stream;
+}
+
+function takePendingMedia(callType) {
+  const stream = window.__pendingLocalStream;
+  if (!stream) return null;
+  if (window.__pendingCallType && callType && window.__pendingCallType !== callType) {
+    return null;
+  }
+  window.__pendingLocalStream = null;
+  window.__pendingCallType = null;
+  return stream;
+}
+
+function createCallEngine({ socket, callId, isCaller, callType, elements, localStream: injectedStream }) {
   const { localVideo, remoteVideo, remoteAudio, onError, onConnected } = elements;
   const wantVideo = callType === 'video';
 
   const iceServers = [
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
+    { urls: 'stun:stun2.l.google.com:19302' },
     {
       urls: [
         'turn:openrelay.metered.ca:80',
@@ -20,7 +90,7 @@ function createCallEngine({ socket, callId, isCaller, callType, elements }) {
   ];
 
   let pc = null;
-  let localStream = null;
+  let localStream = injectedStream || takePendingMedia(callType) || null;
   let startPromise = null;
   let remoteStream = null;
   const iceQueue = [];
@@ -57,6 +127,34 @@ function createCallEngine({ socket, callId, isCaller, callType, elements }) {
     playEl(remoteAudio);
   };
 
+  window._retryCallMedia = async function () {
+    try {
+      if (!localStream || !localStream.getTracks().some((t) => t.readyState === 'live')) {
+        localStream = await requestUserMedia(callType);
+        if (localVideo) {
+          localVideo.srcObject = localStream;
+          localVideo.classList.toggle('hidden', !wantVideo);
+          localVideo.muted = true;
+          playEl(localVideo);
+        }
+        if (pc) {
+          const senders = pc.getSenders();
+          localStream.getTracks().forEach((track) => {
+            const sender = senders.find((s) => s.track && s.track.kind === track.kind);
+            if (sender) sender.replaceTrack(track);
+            else pc.addTrack(track, localStream);
+          });
+        }
+      }
+      playEl(remoteVideo);
+      playEl(remoteAudio);
+      return true;
+    } catch (e) {
+      onError?.('Mic allow karo Settings → Safari/Chrome → Microphone: ' + (e.message || e.name));
+      return false;
+    }
+  };
+
   function attachRemote(stream) {
     if (!stream) return;
     remoteStream = stream;
@@ -91,24 +189,15 @@ function createCallEngine({ socket, callId, isCaller, callType, elements }) {
     if (pc) return pc;
 
     try {
-      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-      localStream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-        },
-        video: wantVideo
-          ? {
-              facingMode: 'user',
-              width: { ideal: isMobile ? 480 : 640 },
-              height: { ideal: isMobile ? 640 : 480 },
-              frameRate: { ideal: 24, max: 30 },
-            }
-          : false,
-      });
+      if (!localStream) {
+        localStream = takePendingMedia(callType) || (await requestUserMedia(callType));
+      }
     } catch (e) {
-      onError?.('Mic/Camera permission chahiye: ' + e.message);
+      const tip =
+        e.name === 'NotAllowedError'
+          ? 'Phone Settings mein browser ke liye Mic ON karo, phir "Enable Mic" dabao'
+          : e.message;
+      onError?.('Mic/Camera: ' + tip);
       throw e;
     }
 
@@ -140,13 +229,13 @@ function createCallEngine({ socket, callId, isCaller, callType, elements }) {
     pc.onconnectionstatechange = () => {
       const s = pc.connectionState;
       if (s === 'connected') onConnected?.();
-      if (s === 'failed') onError?.('Call failed to connect — try again');
+      if (s === 'failed') onError?.('Call failed to connect — try again (same WiFi try karo)');
       if (s === 'disconnected') console.warn('WebRTC disconnected');
     };
 
     pc.oniceconnectionstatechange = () => {
       if (pc.iceConnectionState === 'failed') {
-        onError?.('Network issue — check WiFi or mobile data on both sides');
+        onError?.('Network issue — dono devices same WiFi try karo ya mobile data');
       }
     };
 
