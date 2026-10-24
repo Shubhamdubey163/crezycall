@@ -1,14 +1,14 @@
--- CallConnect PostgreSQL Schema
+-- CallConnect PostgreSQL Schema (safe to run multiple times)
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
-CREATE TYPE user_role AS ENUM ('customer', 'agent', 'admin');
-CREATE TYPE agent_status AS ENUM ('pending', 'approved', 'rejected');
-CREATE TYPE call_type AS ENUM ('audio', 'video');
-CREATE TYPE call_status AS ENUM ('ringing', 'active', 'ended', 'missed');
-CREATE TYPE withdrawal_status AS ENUM ('pending', 'approved', 'paid', 'rejected');
+DO $$ BEGIN CREATE TYPE user_role AS ENUM ('customer', 'agent', 'admin'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE agent_status AS ENUM ('pending', 'approved', 'rejected'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE call_type AS ENUM ('audio', 'video'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE call_status AS ENUM ('ringing', 'active', 'ended', 'missed'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN CREATE TYPE withdrawal_status AS ENUM ('pending', 'approved', 'paid', 'rejected'); EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   email VARCHAR(255) UNIQUE NOT NULL,
   password_hash VARCHAR(255) NOT NULL,
@@ -18,7 +18,7 @@ CREATE TABLE users (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE agents (
+CREATE TABLE IF NOT EXISTS agents (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   display_name VARCHAR(100) NOT NULL,
@@ -35,7 +35,7 @@ CREATE TABLE agents (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE wallet_transactions (
+CREATE TABLE IF NOT EXISTS wallet_transactions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   amount DECIMAL(12, 2) NOT NULL,
@@ -44,7 +44,7 @@ CREATE TABLE wallet_transactions (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE calls (
+CREATE TABLE IF NOT EXISTS calls (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   customer_id UUID NOT NULL REFERENCES users(id),
   agent_id UUID NOT NULL REFERENCES agents(id),
@@ -60,7 +60,7 @@ CREATE TABLE calls (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE withdrawals (
+CREATE TABLE IF NOT EXISTS withdrawals (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   agent_id UUID NOT NULL REFERENCES agents(id),
   gross_amount DECIMAL(12, 2) NOT NULL,
@@ -72,9 +72,6 @@ CREATE TABLE withdrawals (
   processed_at TIMESTAMPTZ
 );
 
-CREATE INDEX idx_agents_status ON agents(status);
-CREATE INDEX idx_calls_customer ON calls(customer_id);
-CREATE INDEX idx_calls_agent ON calls(agent_id);
-
--- Default admin (password: admin123 - change in production)
--- Hash generated at runtime in setup-db.js
+CREATE INDEX IF NOT EXISTS idx_agents_status ON agents(status);
+CREATE INDEX IF NOT EXISTS idx_calls_customer ON calls(customer_id);
+CREATE INDEX IF NOT EXISTS idx_calls_agent ON calls(agent_id);

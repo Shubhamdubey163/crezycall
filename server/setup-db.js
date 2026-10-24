@@ -8,6 +8,17 @@ async function setup() {
   const schema = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8');
   await pool.query(schema);
 
+  // Extra columns / tables used by live app (safe if already present)
+  try {
+    const { ensureSchema } = require('./ensure-schema');
+    await ensureSchema();
+  } catch (e) {
+    console.warn('ensureSchema:', e.message);
+  }
+
+  // Optional enum value for super admin portal
+  await pool.query(`ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'super_admin'`).catch(() => {});
+
   for (const [adminEmail, adminPass, adminName] of [
     ['demo@admin.com', '1234567', 'Crezycall Admin'],
     ['admin@callconnect.app', 'admin123', 'Platform Admin'],
