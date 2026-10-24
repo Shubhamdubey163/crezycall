@@ -7,6 +7,7 @@
     "start": "node server/index.js",
     "dev": "node --watch server/index.js",
     "db:setup": "node server/setup-db.js",
+    "db:migrate": "node server/setup-db.js",
     "seed:admin": "node server/seed-admin.js",
     "migrate": "node server/migrate.js",
     "migrate:v2": "node server/migrate-v2.js",
